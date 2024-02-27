@@ -4,17 +4,18 @@ scheduler:
   name: scheduler  # Dask scheduler name.
   image:
     repository: "daskdev/dask"  # Container image repository.
-    tag: 2.30.0  # Container image tag.
+    tag: 2021.3.0  # Container image tag.
     pullPolicy: IfNotPresent  # Container image pull policy.
     pullSecrets:  # Container image [pull secrets](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
     #  - name: regcred
-  replicas: 0  # Number of schedulers (should not be >1).
+  # Number of schedulers should be <=1 in this deployment.
+  replicas: 0
   resources:
     limits:
-        cpu: 2
-        memory: 20G
+        cpu: 4
+        memory: 62G
     requests:
-        cpu: 2
+        cpu: 2000m
         memory: 20G
   serviceType: "LoadBalancer"
   env:
@@ -29,9 +30,9 @@ scheduler:
     - name: EXTRA_APT_PACKAGES
       value: build-essential swig libgfortran4 gcc python3-dev
     - name: EXTRA_CONDA_PACKAGES
-      value: zarr numba==0.48.0 icc_rt fsspec>=0.8.4 s3fs==0.4.2 --channel conda-forge --channel numba
+      value: zarr numba>=0.51.0 icc_rt fsspec>=0.8.4 s3fs==0.4.2 --channel conda-forge --channel numba
     - name: EXTRA_PIP_PACKAGES
-      value: numcodecs numpy==1.18.1 cngi-prototype==0.0.64 astropy
+      value: astropy numcodecs numpy>=1.18.1 cngi-prototype==0.0.83 xarray
   servicePort: 8786 # Scheduler service internal port.
   tolerations: []  # Tolerations.
   affinity:
@@ -41,7 +42,7 @@ scheduler:
           - matchExpressions:
             - key: "kops.k8s.io/instancegroup"
               operator: NotIn
-              values: ["mixed-ig"]
+              values: ["workers"]
   nodeSelector: {}  # Node Selector.
   # serviceAccountName: ""
 
@@ -61,7 +62,7 @@ webUI:
 worker:
   image: # duplicate current scheduler default
     repository: "daskdev/dask"
-    tag: 2.30.0
+    tag: 2021.3.0
     pullPolicy: IfNotPresent
     pullSecrets:  # Container image [pull secrets](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
   replicas: 0
@@ -70,7 +71,7 @@ worker:
         cpu: 8
         memory: 64G
     requests:
-        cpu: 7800m
+        cpu: 7250m
         memory: 62G
   env:
     - name: OMP_NUM_THREADS
@@ -84,26 +85,26 @@ worker:
     - name: EXTRA_APT_PACKAGES
       value: build-essential swig libgfortran4 gcc python3-dev
     - name: EXTRA_CONDA_PACKAGES
-      value: zarr numba==0.48.0 icc_rt fsspec>=0.8.4 s3fs==0.4.2 --channel conda-forge --channel numba
+      value: zarr numba>=0.51.0 icc_rt fsspec>=0.8.4 s3fs==0.4.2 --channel conda-forge --channel numba
     - name: EXTRA_PIP_PACKAGES
-      value: numcodecs numpy==1.18.1 cngi-prototype==0.0.64 astropy
+      value: astropy numcodecs numpy>=1.18.1 cngi-prototype==0.0.83 xarray
 
 jupyter:
   enabled: true
   image:
     repository: "daskdev/dask-notebook"
-    tag: 2.30.0
+    tag: 2021.3.0
     #repository: amcnicho/dask-docker-test
     #tag: dask-notebook
     pullPolicy: Always
   replicas: 0
   resources:
     limits:
-        cpu: 2
-        memory: 10G
+        cpu: 4
+        memory: 62G
     requests:
-        cpu: 1000m
-        memory: 10G
+        cpu: 3000m
+        memory: 32G
   env:
     - name: OMP_NUM_THREADS
       value: "1"
@@ -116,9 +117,9 @@ jupyter:
     - name: EXTRA_APT_PACKAGES
       value: build-essential swig libgfortran4 gcc python3-dev
     - name: EXTRA_CONDA_PACKAGES
-      value: zarr numba==0.48.0 icc_rt fsspec>=0.8.4 s3fs==0.4.2 --channel conda-forge --channel numba
+      value: zarr numba>=0.51.0 icc_rt fsspec>=0.8.4 s3fs==0.4.2 --channel conda-forge --channel numba
     - name: EXTRA_PIP_PACKAGES
-      value: numcodecs numpy==1.18.1 cngi-prototype==0.0.64 astropy
+      value: astropy numcodecs numpy>=1.18.1 cngi-prototype==0.0.83 xarray
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
@@ -126,4 +127,4 @@ jupyter:
           - matchExpressions:
             - key: "kops.k8s.io/instancegroup"
               operator: NotIn
-              values: ["mixed-ig"]
+              values: ["workers"]
