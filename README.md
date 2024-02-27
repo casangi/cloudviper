@@ -6,7 +6,7 @@ Before its refactoring into the multi-layered VIPER prototype under active devel
 
 The files in this repo are the configurations that were in use the last time we administered a kubernetes cluster via [kops](https://kops.sigs.k8s.io/) and [helm](https://helm.sh/) on [AWS](https://aws.amazon.com/console/).
 
-This process essentially followed [the official documentation](https://kubernetes.io/docs/setup/production-environment/tools/kops/#4-5-build-your-cluster-configuration) from kubernetes. Of course there are other ways to interact with k8s via cloud providers (such as e.g, [Amazon EKS](https://aws.amazon.com/eks/) or open-source shims like [dask-kubernetes](https://docs.dask.org/en/latest/deploying-kubernetes.html), etc.) and we might evolve these configurations to make use of those, as well as following other methods to deploy on premises.
+This process essentially followed [the official documentation](https://kubernetes.io/docs/tasks/tools/) from kubernetes (when the kops documentation was still hosted there). Of course there are other ways to interact with k8s via cloud providers (such as e.g, [Amazon EKS](https://aws.amazon.com/eks/) or open-source shims like [dask-kubernetes](https://docs.dask.org/en/latest/deploying-kubernetes.html), etc.) and we might evolve these configurations to make use of those, as well as following other methods to deploy on premises.
 
 ## Creating a cluster
 
