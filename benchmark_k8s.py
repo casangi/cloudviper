@@ -79,15 +79,3 @@ if __name__ == '__main__':
          
         bench_file.write(" %d %d %f \r\n" % (n_worker,threads_per_worker,time_to_calc_and_store))
         bench_file.close()
-    
-
-
-
-
-
-
-
-
-
-
-
