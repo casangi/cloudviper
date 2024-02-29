@@ -1,0 +1,130 @@
+# config.yaml
+
+scheduler:
+  name: scheduler  # Dask scheduler name.
+  image:
+    repository: "daskdev/dask"  # Container image repository.
+    tag: 2021.3.0  # Container image tag.
+    pullPolicy: IfNotPresent  # Container image pull policy.
+    pullSecrets:  # Container image [pull secrets](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
+    #  - name: regcred
+  # Number of schedulers should be <=1 in this deployment.
+  replicas: 0
+  resources:
+    limits:
+        cpu: 4
+        memory: 62G
+    requests:
+        cpu: 2000m
+        memory: 20G
+  serviceType: "LoadBalancer"
+  env:
+    - name: OMP_NUM_THREADS
+      value: "1"
+    - name: MKL_NUM_THREADS
+      value: "1"
+    - name: OPENBLAS_NUM_THREADS
+      value: "1"
+    - name: BLOSC_NOLOCK
+      value: "1"
+    - name: EXTRA_APT_PACKAGES
+      value: build-essential swig libgfortran4 gcc python3-dev
+    - name: EXTRA_CONDA_PACKAGES
+      value: zarr numba>=0.51.0 icc_rt fsspec>=0.8.4 s3fs==0.4.2 --channel conda-forge --channel numba
+    - name: EXTRA_PIP_PACKAGES
+      value: astropy numcodecs numpy>=1.18.1 cngi-prototype==0.0.83 xarray
+  servicePort: 8786 # Scheduler service internal port.
+  tolerations: []  # Tolerations.
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+            - key: "kops.k8s.io/instancegroup"
+              operator: NotIn
+              values: ["workers"]
+  nodeSelector: {}  # Node Selector.
+  # serviceAccountName: ""
+
+webUI:
+  name: webui  # Dask webui name.
+  servicePort: 80 # webui service internal port.
+  ingress:
+    enabled: false  # Enable ingress.
+    tls: false  # Ingress should use TLS.
+    # secretName: dask-scheduler-tls
+    hostname: dask-ui.example.com  # Ingress hostname.
+    annotations:  # Ingress annotations. See `values.yaml` for example values.
+      # kubernetes.io/ingress.class: "nginx"
+      # secretName: my-tls-cert
+      # kubernetes.io/tls-acme: "true"
+
+worker:
+  image: # duplicate current scheduler default
+    repository: "daskdev/dask"
+    tag: 2021.3.0
+    pullPolicy: IfNotPresent
+    pullSecrets:  # Container image [pull secrets](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
+  replicas: 0
+  resources:
+    limits:
+        cpu: 8
+        memory: 64G
+    requests:
+        cpu: 7250m
+        memory: 62G
+  env:
+    - name: OMP_NUM_THREADS
+      value: "1"
+    - name: MKL_NUM_THREADS
+      value: "1"
+    - name: OPENBLAS_NUM_THREADS
+      value: "1"
+    - name: BLOSC_NOLOCK
+      value: "1"
+    - name: EXTRA_APT_PACKAGES
+      value: build-essential swig libgfortran4 gcc python3-dev
+    - name: EXTRA_CONDA_PACKAGES
+      value: zarr numba>=0.51.0 icc_rt fsspec>=0.8.4 s3fs==0.4.2 --channel conda-forge --channel numba
+    - name: EXTRA_PIP_PACKAGES
+      value: astropy numcodecs numpy>=1.18.1 cngi-prototype==0.0.83 xarray
+
+jupyter:
+  enabled: true
+  image:
+    repository: "daskdev/dask-notebook"
+    tag: 2021.3.0
+    #repository: amcnicho/dask-docker-test
+    #tag: dask-notebook
+    pullPolicy: Always
+  replicas: 0
+  resources:
+    limits:
+        cpu: 4
+        memory: 62G
+    requests:
+        cpu: 3000m
+        memory: 32G
+  env:
+    - name: OMP_NUM_THREADS
+      value: "1"
+    - name: MKL_NUM_THREADS
+      value: "1"
+    - name: OPENBLAS_NUM_THREADS
+      value: "1"
+    - name: BLOSC_NOLOCK
+      value: "1"
+    - name: EXTRA_APT_PACKAGES
+      value: build-essential swig libgfortran4 gcc python3-dev
+    - name: EXTRA_CONDA_PACKAGES
+      value: zarr numba>=0.51.0 icc_rt fsspec>=0.8.4 s3fs==0.4.2 --channel conda-forge --channel numba
+    - name: EXTRA_PIP_PACKAGES
+      value: astropy numcodecs numpy>=1.18.1 cngi-prototype==0.0.83 xarray
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+            - key: "kops.k8s.io/instancegroup"
+              operator: NotIn
+              values: ["workers"]
