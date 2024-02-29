@@ -37,8 +37,8 @@ Suggestions:
 ```
 Once it had been confirmed that services are accessible and the deployment can scale up workers, the helm charts provided by the [dask project](https://github.com/dask/helm-chart)) can be used to deploy a custom pod configuration:
 ```
-helm install dask dask/dask -f config.yaml
-helm upgrade dask dask/dask -f config.yaml
+helm install dask dask/dask --version 2021.3.0 -f config.yaml
+helm upgrade dask dask/dask --version 2021.3.0 -f config.yaml
 ```
 Configurations can be explored from the management console via commands such as `kops get cluster --full -o yaml`
 
