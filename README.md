@@ -13,16 +13,25 @@ This process essentially followed [the official documentation](https://kubernete
 We relied on this relatively simple workflow to create our own kubernetes cluster with kops, 
 Of course, this presumes the prior configuration of appropriately-permissioned accounts, existence of various SDKs, and so forth.
 ```
-export KOPS_CLUSTER_NAME=test.k8s.local
+export KOPS_CLUSTER_NAME=viper.k8s.local
 export KOPS_STATE_STORE=s3://cngi-kops-state
 kops create cluster --name=${KOPS_CLUSTER_NAME} --node-count=0 --node-size=m5dn.xlarge --master-size=t3.small --zones=us-east-1a
 kops create secret --name ${KOPS_CLUSTER_NAME} sshpublickey admin -i $KEYFILE
-kops edit ig --name=$KOPS_CLUSTER_NAME master-us-east-1a
+
+# further configurations can be made on that existing cluster, e.g., bring up/down the deployment, scale available resources
+kops edit ig --name=$KOPS_CLUSTER_NAME master
 kops edit ig --name=$KOPS_CLUSTER_NAME nodes
 kops create ig --name=$KOPS_CLUSTER_NAME workers --subnet us-east-1a
 # manually add cloudLabels to the spec of every config
 # manually add a script to disable hyperthreading to workers config
 # manually add taints to workers config plus extra entries to request spot instances
+
+# alternatively, the configuration of existing instancegroups can be made using the configuration files stored in this repo
+kops replace ig master -f kops_master.cfg
+kops replace ig nodes -f kops_nodes.cfg
+kops replace ig workers -f kops_workers.cfg 
+
+# to deploy changes
 kops update cluster --name=${KOPS_CLUSTER_NAME} --yes
 ```
 This should show some encouraging output such as:
@@ -31,16 +40,16 @@ Cluster is starting.  It should be ready in a few minutes.
 Suggestions:
  * validate cluster: kops validate cluster --wait 10m
  * list nodes: kubectl get nodes --show-labels
- * ssh to the master: ssh -i $KEYFILE ubuntu@api.test.k8s.local
+ * ssh to the master: ssh -i $KEYFILE ubuntu@api.viper.k8s.local
  * the ubuntu user is specific to Ubuntu. If not using Ubuntu please use the appropriate user based on your OS.
  * read about installing addons at: https://kops.sigs.k8s.io/operations/addons.
 ```
 Once it had been confirmed that services are accessible and the deployment can scale up workers, the helm charts provided by the [dask project](https://github.com/dask/helm-chart)) can be used to deploy a custom pod configuration:
 ```
 helm install dask dask/dask --version 2024.1.1 -f config.yaml
-helm upgrade dask dask/dask --version 2021.1.1 -f config.yaml
+helm upgrade dask dask/dask --version 2024.1.1 -f config.yaml
 ```
-Configurations can be explored from the management console via commands such as `kops get cluster --full -o yaml`
+Configurations can be explored from the management console via commands such as `kops get cluster --full -o yaml`, and status of the cluster can be monitored using commands such as `kubectl get pods -o wide` or `kubectl get svc --namespace default dask-scheduler`.
 
 ## Description
 
