@@ -75,14 +75,14 @@ worker:
     requests:
         cpu: 2000m
         memory: 16G
-  mounts: {}
+  #mounts: {}
     #volumes:
     #- name: data
     #  emptyDir: {}
     #volumeMounts:
     #- name: data
     #  mountPath: /data
-    env:
+  env:
     - name: OMP_NUM_THREADS
       value: "1"
     - name: MKL_NUM_THREADS
