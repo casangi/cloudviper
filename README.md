@@ -13,17 +13,18 @@ This process essentially followed [the official documentation](https://kubernete
 We relied on this relatively simple workflow to create our own kubernetes cluster with kops, 
 Of course, this presumes the prior configuration of appropriately-permissioned accounts, existence of various SDKs, and so forth.
 ```
-export KOPS_CLUSTER_NAME=test.k8s.local
+export KOPS_CLUSTER_NAME=viper.k8s.local
 export KOPS_STATE_STORE=s3://cngi-kops-state
-kops create cluster --name=${KOPS_CLUSTER_NAME} --node-count=0 --node-size=m5dn.xlarge --master-size=t3.small --zones=us-east-1a
+kops create cluster --name=${KOPS_CLUSTER_NAME} --cloud=aws --node-count=0 --master-size=t3.small --node-size=m5dn.xlarge --zones=us-east-1a --cloud-labels "budget=cngi"
 kops create secret --name ${KOPS_CLUSTER_NAME} sshpublickey admin -i $KEYFILE
-kops edit ig --name=$KOPS_CLUSTER_NAME master-us-east-1a
-kops edit ig --name=$KOPS_CLUSTER_NAME nodes
-kops create ig --name=$KOPS_CLUSTER_NAME workers --subnet us-east-1a
-# manually add cloudLabels to the spec of every config
-# manually add a script to disable hyperthreading to workers config
-# manually add taints to workers config plus extra entries to request spot instances
-kops update cluster --name=${KOPS_CLUSTER_NAME} --yes
+
+# further configurations can be made on that cluster definition, e.g., bring up/down the deployment, scale available resources
+# here we add another instance group to serve as a pool of servers for deploying dask worker pods
+kops create ig --name=$KOPS_CLUSTER_NAME workers --subnet us-east-1a --dry-run -o yaml
+# manually add new cloudLabels to the spec, change instance type, etc.
+
+# to deploy changes
+kops update cluster --name=${KOPS_CLUSTER_NAME}
 ```
 This should show some encouraging output such as:
 ```
@@ -31,16 +32,30 @@ Cluster is starting.  It should be ready in a few minutes.
 Suggestions:
  * validate cluster: kops validate cluster --wait 10m
  * list nodes: kubectl get nodes --show-labels
- * ssh to the master: ssh -i $KEYFILE ubuntu@api.test.k8s.local
+ * ssh to the master: ssh -i $KEYFILE ubuntu@api.viper.k8s.local
  * the ubuntu user is specific to Ubuntu. If not using Ubuntu please use the appropriate user based on your OS.
  * read about installing addons at: https://kops.sigs.k8s.io/operations/addons.
 ```
-Once it had been confirmed that services are accessible and the deployment can scale up workers, the helm charts provided by the [dask project](https://github.com/dask/helm-chart)) can be used to deploy a custom pod configuration:
+
+Updating this deployment to match the configuration files stored in this repository is possible with manual updates to the instance group specs:
 ```
-helm install dask dask/dask --version 2021.3.0 -f config.yaml
-helm upgrade dask dask/dask --version 2021.3.0 -f config.yaml
+kops edit ig --name=$KOPS_CLUSTER_NAME master-us-east-1a
+# manually add new cloudLabels to the spec
+kops edit ig --name=$KOPS_CLUSTER_NAME workers
+# manually add taints plus extra entries to request spot instances
+
+# alternatively, the configuration of existing instancegroups should be possible directly using the files stored in this repo (note: we haven't verified `kops replace -f` yet).
+kops replace ig master-us-east-1a -f kops_master.cfg
+kops replace ig nodes -f kops_nodes.cfg
+kops replace ig workers -f kops_workers.cfg 
 ```
-Configurations can be explored from the management console via commands such as `kops get cluster --full -o yaml`
+
+Once it has been confirmed that services are accessible and the deployment has sufficient resources to host our application with room to scale up workers, the helm charts provided by the [dask project](https://github.com/dask/helm-chart)) can be used to deploy a custom pod configuration:
+```
+helm install dask dask/dask --version 2024.1.1 -f config.yaml
+helm upgrade dask dask/dask --version 2024.1.1 -f config.yaml
+```
+Configurations can be explored from the management console via commands such as `kops get cluster --full -o yaml`, and status of the cluster can be monitored using commands such as `kubectl get pods -o wide` or `kubectl get svc --namespace default dask-scheduler`.
 
 ## Description
 
