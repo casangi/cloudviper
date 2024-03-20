@@ -33,7 +33,7 @@ scheduler:
     - name: EXTRA_CONDA_PACKAGES
       value: fsspec==2024.2.0 s3fs==2024.2.0
     - name: EXTRA_PIP_PACKAGES
-      value: graphviper==0.0.6 astroviper==0.0.9
+      value: graphviper astroviper
   servicePort: 8786
   tolerations: []
   affinity:
@@ -96,7 +96,7 @@ worker:
     - name: EXTRA_CONDA_PACKAGES
       value: fsspec==2024.2.0 s3fs==2024.2.0
     - name: EXTRA_PIP_PACKAGES
-      value: graphviper==0.0.6 astroviper==0.0.9
+      value: graphviper astroviper
 
 jupyter:
   enabled: true
@@ -129,7 +129,7 @@ jupyter:
     - name: EXTRA_CONDA_PACKAGES
       value: fsspec==2024.2.0 s3fs==2024.2.0
     - name: EXTRA_PIP_PACKAGES
-      value: graphviper==0.0.6 astroviper==0.0.9
+      value: graphviper astroviper
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
