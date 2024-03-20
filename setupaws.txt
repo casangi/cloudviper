@@ -1,0 +1,73 @@
+# Start with 
+
+kops create cluster --name=${KOPS_CLUSTER_NAME} --cloud=aws --node-count=0 --master-size=t3.small --node-size=m5dn.xlarge --zones=us-east-1a --cloud-labels "budget=cngi"
+
+# You get the suggestions
+
+Suggestions:
+ * list clusters with: kops get cluster
+ * edit this cluster with: kops edit cluster vstest.k8s.local
+ * edit your node instance group: kops edit ig --name=vstest.k8s.local nodes-us-east-1a
+ * edit your control-plane instance group: kops edit ig --name=vstest.k8s.local control-plane-us-east-1a
+
+Finally configure your cluster with: kops update cluster --name vstest.k8s.local --yes --admin
+
+# Add workers instancegroup
+
+kops create instancegroup workers
+
+# Update the instance group configuration to have as many nodes as you would like (for example 1 node, 2 workers)
+
+# Load the configuration from the .cfg files
+
+kops replace -f kops_master.cfg
+kops replace -f kops_workers.cfg
+kops replace -f kops_nodes.cfg
+
+# Update cluster
+
+kops update cluster --name vstest.k8s.local --yes --admin
+kops validate cluster --wait 10m
+kops rolling-update cluster
+
+# Deploy the Dask helm chart
+
+helm repo add dask https://helm.dask.org/
+helm install dask dask/dask --version 2024.1.1 -f config.yaml
+
+# Run the following to get the Helm instance information
+
+ helm status dask
+helm get all dask
+
+# Run the exports provided by “helm status dask”
+
+# Get the pods
+
+kubectl get pods
+
+# Login to the Jupyter pod
+
+kubectl exec --stdin --tty dask-jupyter-56b866f9f-bc8cv  -- /bin/bash
+
+# In the container do 
+
+jupyter server list
+
+# Get the token and use it to
+# Log in to http://127.0.0.1:8082
+
+https://www.youtube.com/watch?v=ZDgZHW_dvNM
+
+# Forward the scheduler port
+export DASK_SCHEDULER_UI_IP="127.0.0.1"
+kubectl port-forward --namespace default svc/dask-scheduler  8787:80 &
+
+# Browse the scheduler at localhost:8787
+
+
+
+# Get all the service names
+
+kubectl get deployment --all-namespaces
+
