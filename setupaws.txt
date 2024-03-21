@@ -57,7 +57,6 @@ jupyter server list
 # Get the token and use it to
 # Log in to http://127.0.0.1:8082
 
-https://www.youtube.com/watch?v=ZDgZHW_dvNM
 
 # Forward the scheduler port
 export DASK_SCHEDULER_UI_IP="127.0.0.1"
@@ -71,3 +70,6 @@ kubectl port-forward --namespace default svc/dask-scheduler  8787:80 &
 
 kubectl get deployment --all-namespaces
 
+# Get the external LoadBalancer IP for the dashboard
+
+kubectl get svc --namespace default dask-scheduler
