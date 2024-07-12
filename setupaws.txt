@@ -60,7 +60,7 @@ kubectl exec --stdin --tty dask-jupyter-56b866f9f-bc8cv  -- /bin/bash
 
 jupyter server list
 
-# Get the jupyter server in a single line
+# Get the jupyter server token in a single line
 
 kubectl exec --stdin --tty `kubectl get pods | grep jupyter | awk '{print $1}'`  -- /opt/conda/bin/jupyter server list
 

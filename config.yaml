@@ -33,7 +33,7 @@ scheduler:
     - name: EXTRA_CONDA_PACKAGES
       value: fsspec==2024.2.0 s3fs==2024.2.0
     - name: EXTRA_PIP_PACKAGES
-      value: graphviper astroviper
+      value: xradio==0.0.28 graphviper==0.018 astroviper==0.0.14
   serviceType: "LoadBalancer"
   servicePort: 8786
   tolerations: []
@@ -97,7 +97,7 @@ worker:
     - name: EXTRA_CONDA_PACKAGES
       value: fsspec==2024.2.0 s3fs==2024.2.0
     - name: EXTRA_PIP_PACKAGES
-      value: graphviper astroviper
+      value: xradio==0.0.28 graphviper==0.018 astroviper==0.0.14
 
 jupyter:
   enabled: true
@@ -132,7 +132,7 @@ jupyter:
     - name: EXTRA_CONDA_PACKAGES
       value: fsspec==2024.2.0 s3fs==2024.2.0
     - name: EXTRA_PIP_PACKAGES
-      value: graphviper astroviper
+      value: xradio==0.0.28 graphviper==0.018 astroviper==0.0.14
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
