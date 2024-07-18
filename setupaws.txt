@@ -1,6 +1,6 @@
 # Start with 
 
-export KOPS_CLUSTER_NAME=vstest.k8s
+export KOPS_CLUSTER_NAME=vstest.k8s3
 export KOPS_STATE_STORE=s3://cngi-kops-state
 
 kops create cluster --name=${KOPS_CLUSTER_NAME} --cloud=aws --node-count=0 --control-plane-size=t3.small --node-size=m5dn.xlarge --zones=us-east-1a --cloud-labels "budget=cngi"
@@ -9,12 +9,12 @@ kops create cluster --name=${KOPS_CLUSTER_NAME} --cloud=aws --node-count=0 --con
 
 Suggestions:
  * list clusters with: kops get cluster
- * edit this cluster with: kops edit cluster vstest.k8s
- * edit your node instance group: kops edit ig --name=vstest.k8s nodes-us-east-1a
- * edit your control-plane instance group: kops edit ig --name=vstest.k8s control-plane-us-east-1a
+ * edit this cluster with: kops edit cluster vstest.k8s3
+ * edit your node instance group: kops edit ig --name=vstest.k8s3 nodes-us-east-1a
+ * edit your control-plane instance group: kops edit ig --name=vstest.k8s3 control-plane-us-east-1a
 
 # Skip this for now
-# Finally configure your cluster with: kops update cluster --name vstest.k8s --yes --admin
+# Finally configure your cluster with: kops update cluster --name vstest.k8s3 --yes --admin
 
 # Add workers instancegroup
 
@@ -30,7 +30,7 @@ kops replace -f kops_nodes.cfg
 
 # Update cluster
 
-kops update cluster --name vstest.k8s --yes --admin
+kops update cluster --name vstest.k8s3 --yes --admin
 kops validate cluster --wait 10m
 kops rolling-update cluster
 
