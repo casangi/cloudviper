@@ -3,20 +3,21 @@
 scheduler:
   name: scheduler  # Dask scheduler name.
   image:
-    repository: "daskdev/dask"  # Container image repository.
-    tag: 2021.3.0  # Container image tag.
-    pullPolicy: IfNotPresent  # Container image pull policy.
+    repository: "daskdev/dask"
+    tag: 2024.2.1
+    pullPolicy: IfNotPresent
     pullSecrets:  # Container image [pull secrets](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
     #  - name: regcred
   # Number of schedulers should be <=1 in this deployment.
-  replicas: 0
+  replicas: 1
   resources:
+    # presume half an m5.xlarge or similar (4vCPU,16GiB RAM)
     limits:
-        cpu: 4
-        memory: 62G
+        cpu: 2
+        memory: 8G
     requests:
         cpu: 2000m
-        memory: 20G
+        memory: 8G
   serviceType: "LoadBalancer"
   env:
     - name: OMP_NUM_THREADS
@@ -27,14 +28,14 @@ scheduler:
       value: "1"
     - name: BLOSC_NOLOCK
       value: "1"
-    - name: EXTRA_APT_PACKAGES
-      value: build-essential swig libgfortran4 gcc python3-dev
+    #- name: EXTRA_APT_PACKAGES
+    #  value: build-essential swig libgfortran4 gcc python3-dev
     - name: EXTRA_CONDA_PACKAGES
-      value: zarr numba>=0.51.0 icc_rt fsspec>=0.8.4 s3fs==0.4.2 --channel conda-forge --channel numba
+      value: fsspec==2024.2.0 s3fs==2024.2.0
     - name: EXTRA_PIP_PACKAGES
-      value: astropy numcodecs numpy>=1.18.1 cngi-prototype==0.0.83 xarray
-  servicePort: 8786 # Scheduler service internal port.
-  tolerations: []  # Tolerations.
+      value: graphviper==0.0.6 astroviper==0.0.9
+  servicePort: 8786
+  tolerations: []
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
@@ -62,17 +63,25 @@ webUI:
 worker:
   image: # duplicate current scheduler default
     repository: "daskdev/dask"
-    tag: 2021.3.0
+    tag: 2024.2.1
     pullPolicy: IfNotPresent
     pullSecrets:  # Container image [pull secrets](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
-  replicas: 0
+  replicas: 2
   resources:
+    # assuming 8GB RAM per vCPU is enough to fit our largest image plane
     limits:
-        cpu: 8
-        memory: 64G
+        cpu: 2
+        memory: 16G
     requests:
-        cpu: 7250m
-        memory: 62G
+        cpu: 2000m
+        memory: 16G
+  #mounts: {}
+    #volumes:
+    #- name: data
+    #  emptyDir: {}
+    #volumeMounts:
+    #- name: data
+    #  mountPath: /data
   env:
     - name: OMP_NUM_THREADS
       value: "1"
@@ -82,29 +91,30 @@ worker:
       value: "1"
     - name: BLOSC_NOLOCK
       value: "1"
-    - name: EXTRA_APT_PACKAGES
-      value: build-essential swig libgfortran4 gcc python3-dev
+    #- name: EXTRA_APT_PACKAGES
+    #  value: build-essential swig libgfortran4 gcc python3-dev
     - name: EXTRA_CONDA_PACKAGES
-      value: zarr numba>=0.51.0 icc_rt fsspec>=0.8.4 s3fs==0.4.2 --channel conda-forge --channel numba
+      value: fsspec==2024.2.0 s3fs==2024.2.0
     - name: EXTRA_PIP_PACKAGES
-      value: astropy numcodecs numpy>=1.18.1 cngi-prototype==0.0.83 xarray
+      value: graphviper==0.0.6 astroviper==0.0.9
 
 jupyter:
   enabled: true
   image:
     repository: "daskdev/dask-notebook"
-    tag: 2021.3.0
+    tag: 2024.2.1
     #repository: amcnicho/dask-docker-test
     #tag: dask-notebook
     pullPolicy: Always
-  replicas: 0
+  replicas: 1
   resources:
+    # presume ~quarter of an m5.xlarge or similar (4vCPU,16GiB RAM)
     limits:
-        cpu: 4
-        memory: 62G
+        cpu: 1
+        memory: 4G
     requests:
-        cpu: 3000m
-        memory: 32G
+        cpu: 1000m
+        memory: 4G
   env:
     - name: OMP_NUM_THREADS
       value: "1"
@@ -114,12 +124,12 @@ jupyter:
       value: "1"
     - name: BLOSC_NOLOCK
       value: "1"
-    - name: EXTRA_APT_PACKAGES
-      value: build-essential swig libgfortran4 gcc python3-dev
+    #- name: EXTRA_APT_PACKAGES
+    #  value: build-essential swig libgfortran4 gcc python3-dev
     - name: EXTRA_CONDA_PACKAGES
-      value: zarr numba>=0.51.0 icc_rt fsspec>=0.8.4 s3fs==0.4.2 --channel conda-forge --channel numba
+      value: fsspec==2024.2.0 s3fs==2024.2.0
     - name: EXTRA_PIP_PACKAGES
-      value: astropy numcodecs numpy>=1.18.1 cngi-prototype==0.0.83 xarray
+      value: graphviper==0.0.6 astroviper==0.0.9
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
